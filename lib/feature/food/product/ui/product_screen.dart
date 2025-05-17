@@ -7,6 +7,15 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../logic/cubit/product_cubit.dart';
 
+// Define a modern color palette
+const Color kPrimaryColor = Color(0xFF4CAF50); // A vibrant green
+const Color kAccentColor = Color(0xFFFFC107); // A warm yellow
+const Color kBackgroundColor = Color(0xFFF5F5F5); // Light grey for background
+const Color kCardColor = Colors.white;
+const Color kTextColor = Color(0xFF333333);
+const Color kSecondaryTextColor = Color(0xFF757575);
+const Color kErrorColor = Color(0xFFD32F2F);
+
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
 
@@ -167,16 +176,26 @@ class _ProductScreenState extends State<ProductScreen> {
         return true;
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: kBackgroundColor,
         appBar: AppBar(
-          title: const Text('Scan Product'),
+          backgroundColor: Colors.white,
+          elevation: 1,
+          iconTheme: const IconThemeData(color: kPrimaryColor),
+          title: Text(
+            'Scan Product',
+            style: GoogleFonts.poppins(
+              color: kTextColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           actions: [
             if (isScanning)
               IconButton(
                 icon: Icon(
                   controller.torchEnabled
-                      ? Icons.flashlight_on
-                      : Icons.flashlight_off,
+                      ? Icons.flash_on_rounded
+                      : Icons.flash_off_rounded,
+                  color: kPrimaryColor,
                 ),
                 onPressed: () => controller.toggleTorch(),
               ),
@@ -195,7 +214,9 @@ class _ProductScreenState extends State<ProductScreen> {
           },
           builder: (context, state) {
             if (state is ProductLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(
+                child: CircularProgressIndicator(color: kPrimaryColor),
+              );
             }
             if (state is ProductLoaded) {
               return _buildProductInfo(state);
@@ -211,30 +232,61 @@ class _ProductScreenState extends State<ProductScreen> {
     if (!isScanning) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  'https://www.scandit.com/wp-content/uploads/2023/01/SparkScan_ergonomic_scanner_retail.jpg',
-                  fit: BoxFit.cover,
-                  width: MediaQuery.of(context).size.width,
-                  height: 200,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: kPrimaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Icon(
+                  Icons.qr_code_scanner_rounded,
+                  size: 80,
+                  color: kPrimaryColor,
                 ),
               ),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: _startScanning,
-                icon: const Icon(Icons.qr_code_scanner),
-                label: const Text('Start Scanning'),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               Text(
-                'Scan the QR code of the product to get the information',
-                style: GoogleFonts.poppins(),
+                'Ready to Scan?',
+                style: GoogleFonts.poppins(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  color: kTextColor,
+                ),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Point your camera at a product\'s barcode to get instant nutritional insights and details.',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  color: kSecondaryTextColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: kPrimaryColor,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  textStyle: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _startScanning,
+                icon: const Icon(Icons.camera_alt_rounded),
+                label: const Text('Start Scanning'),
               ),
             ],
           ),
@@ -243,6 +295,7 @@ class _ProductScreenState extends State<ProductScreen> {
     }
 
     return Stack(
+      alignment: Alignment.center,
       children: [
         MobileScanner(
           controller: controller,
@@ -294,46 +347,53 @@ class _ProductScreenState extends State<ProductScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
+                  clipBehavior: Clip.antiAlias,
                   child: Center(
                     child: Image.network(
                       basic.imageUrl!,
                       fit: BoxFit.cover,
+                      height: 250,
+                      width: double.infinity,
                       errorBuilder:
                           (_, __, ___) => Container(
+                            height: 250,
                             color: Colors.grey[200],
                             child: const Icon(
-                              Icons.image_not_supported,
+                              Icons.image_not_supported_rounded,
                               size: 64,
+                              color: kSecondaryTextColor,
                             ),
                           ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 Text(
                   basic.name,
                   style: GoogleFonts.poppins(
-                    fontSize: 24,
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
+                    color: kTextColor,
                   ),
                 ),
                 if (basic.brands != null) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     basic.brands!,
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.grey[600],
+                      fontSize: 17,
+                      color: kSecondaryTextColor,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
                 // Scores Row
                 _buildScoresSection(detailed),
@@ -352,7 +412,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   _buildInteractiveListTile(
                     title: 'Ingredients',
                     items: detailed.ingredients,
-                    icon: Icons.receipt_long_rounded,
+                    icon: Icons.format_list_bulleted_rounded,
                     isExpandable: true,
                   ),
 
@@ -360,7 +420,12 @@ class _ProductScreenState extends State<ProductScreen> {
                 const SizedBox(height: 16),
                 if (detailed.allergens.isNotEmpty) ...[
                   Card(
-                    color: Colors.red[50],
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: kErrorColor.withOpacity(0.5)),
+                    ),
+                    color: kErrorColor.withOpacity(0.05),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -370,22 +435,41 @@ class _ProductScreenState extends State<ProductScreen> {
                             children: [
                               Icon(
                                 Icons.warning_amber_rounded,
-                                color: Colors.red[700],
+                                color: kErrorColor,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 10),
                               Text(
-                                'Allergens',
+                                'Potential Allergens',
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.red[700],
+                                  color: kErrorColor,
+                                  fontSize: 16,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            detailed.allergens.join(', '),
-                            style: GoogleFonts.poppins(),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8.0,
+                            runSpacing: 4.0,
+                            children:
+                                detailed.allergens.map((allergen) {
+                                  return Chip(
+                                    label: Text(
+                                      allergen,
+                                      style: GoogleFonts.poppins(
+                                        color: kErrorColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    backgroundColor: kErrorColor.withOpacity(
+                                      0.1,
+                                    ),
+                                    side: BorderSide(
+                                      color: kErrorColor.withOpacity(0.3),
+                                    ),
+                                  );
+                                }).toList(),
                           ),
                         ],
                       ),
@@ -411,8 +495,22 @@ class _ProductScreenState extends State<ProductScreen> {
                 const SizedBox(height: 24),
                 Center(
                   child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: kPrimaryColor,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      textStyle: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     onPressed: _startScanning,
-                    icon: const Icon(Icons.qr_code_scanner),
+                    icon: const Icon(Icons.qr_code_scanner_rounded),
                     label: const Text('Scan Another Product'),
                   ),
                 ),
@@ -427,6 +525,9 @@ class _ProductScreenState extends State<ProductScreen> {
 
   Widget _buildScoresSection(DetailedProductModel detailed) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: kCardColor,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -435,8 +536,9 @@ class _ProductScreenState extends State<ProductScreen> {
             Text(
               'Product Scores',
               style: GoogleFonts.poppins(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: kTextColor,
               ),
             ),
             const SizedBox(height: 16),
@@ -478,34 +580,38 @@ class _ProductScreenState extends State<ProductScreen> {
     return Column(
       children: [
         Container(
-          width: 60,
-          height: 60,
+          width: 64,
+          height: 64,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            border: Border.all(color: color, width: 2),
+            color: color.withOpacity(0.15),
+            border: Border.all(color: color, width: 2.5),
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
               score,
               style: GoogleFonts.poppins(
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Text(
           title,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+            color: kTextColor,
+          ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 5),
         Text(
           description,
-          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+          style: GoogleFonts.poppins(fontSize: 12, color: kSecondaryTextColor),
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -524,22 +630,25 @@ class _ProductScreenState extends State<ProductScreen> {
       'Ultra-processed',
     ];
     final colors = [
-      Colors.grey,
-      Colors.green,
-      Colors.lightGreen,
-      Colors.orange,
-      Colors.red,
+      Colors.grey.shade400, // N/A
+      Colors.green.shade600, // Unprocessed
+      Colors.lightGreen.shade600, // Processed Culinary
+      Colors.orange.shade600, // Processed Foods
+      Colors.red.shade600, // Ultra-processed
     ];
+
+    // Ensure group index is within bounds
+    final int validGroup = group.clamp(0, descriptions.length - 1);
 
     return Column(
       children: [
         Container(
-          width: 60,
-          height: 60,
+          width: 64,
+          height: 64,
           decoration: BoxDecoration(
-            color: colors[group].withOpacity(0.1),
-            border: Border.all(color: colors[group], width: 2),
-            borderRadius: BorderRadius.circular(8),
+            color: colors[validGroup].withOpacity(0.15),
+            border: Border.all(color: colors[validGroup], width: 2.5),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -547,32 +656,36 @@ class _ProductScreenState extends State<ProductScreen> {
               Text(
                 'NOVA',
                 style: GoogleFonts.poppins(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: colors[group],
+                  color: colors[validGroup],
                 ),
               ),
               Text(
-                group.toString(),
+                validGroup.toString(), // Display the validated group
                 style: GoogleFonts.poppins(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: colors[group],
+                  color: colors[validGroup],
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Text(
-          'Processing',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+          'Food Processing',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+            color: kTextColor,
+          ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 5),
         Text(
-          descriptions[group],
-          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+          descriptions[validGroup],
+          style: GoogleFonts.poppins(fontSize: 12, color: kSecondaryTextColor),
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -618,39 +731,42 @@ class _ProductScreenState extends State<ProductScreen> {
   Color _getNutriScoreColor(String? score) {
     switch (score?.toLowerCase()) {
       case 'a':
-        return Colors.green;
+        return Colors.green.shade600;
       case 'b':
-        return Colors.lightGreen;
+        return Colors.lightGreen.shade600;
       case 'c':
-        return Colors.yellow;
+        return Colors.yellow.shade700;
       case 'd':
-        return Colors.orange;
+        return Colors.orange.shade600;
       case 'e':
-        return Colors.red;
+        return Colors.red.shade600;
       default:
-        return Colors.grey;
+        return Colors.grey.shade400;
     }
   }
 
   Color _getEcoScoreColor(String? score) {
     switch (score?.toLowerCase()) {
       case 'a':
-        return Colors.green;
+        return Colors.green.shade600;
       case 'b':
-        return Colors.lightGreen;
+        return Colors.lightGreen.shade600;
       case 'c':
-        return Colors.yellow;
+        return Colors.yellow.shade700;
       case 'd':
-        return Colors.orange;
+        return Colors.orange.shade600;
       case 'e':
-        return Colors.red;
+        return Colors.red.shade600;
       default:
-        return Colors.grey;
+        return Colors.grey.shade400;
     }
   }
 
   Widget _buildNutritionCard(NutrimentsModel nutrients) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: kCardColor,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -659,8 +775,9 @@ class _ProductScreenState extends State<ProductScreen> {
             Text(
               'Nutrition Facts',
               style: GoogleFonts.poppins(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: kTextColor,
               ),
             ),
             const SizedBox(height: 16),
@@ -684,18 +801,45 @@ class _ProductScreenState extends State<ProductScreen> {
           'Energy',
           '${nutrients.energy} kcal',
           isHighlighted: true,
+          icon: Icons.local_fire_department_rounded,
+          iconColor: Colors.orange.shade700,
         ),
-        const SizedBox(height: 8),
-        _buildNutrientBarRow('Proteins', nutrients.proteins, 50, Colors.green),
+        const SizedBox(height: 12),
+        _buildNutrientBarRow(
+          'Proteins',
+          nutrients.proteins,
+          50, // Example RDA, adjust as needed
+          Colors.green.shade600,
+          Icons.fitness_center_rounded,
+        ),
         _buildNutrientBarRow(
           'Carbohydrates',
           nutrients.carbohydrates,
-          100,
-          Colors.orange,
+          300, // Example RDA, adjust as needed
+          Colors.orange.shade600,
+          Icons.bakery_dining_rounded,
         ),
-        _buildNutrientBarRow('Fat', nutrients.fat, 50, Colors.red),
-        _buildNutrientBarRow('Fiber', nutrients.fiber, 25, Colors.brown),
-        _buildNutrientBarRow('Sugars', nutrients.sugars, 25, Colors.pink),
+        _buildNutrientBarRow(
+          'Fat',
+          nutrients.fat,
+          70, // Example RDA, adjust as needed
+          Colors.red.shade600,
+          Icons.fastfood_rounded,
+        ),
+        _buildNutrientBarRow(
+          'Fiber',
+          nutrients.fiber,
+          30, // Example RDA, adjust as needed
+          Colors.brown.shade600,
+          Icons.eco_rounded,
+        ),
+        _buildNutrientBarRow(
+          'Sugars',
+          nutrients.sugars,
+          25, // Example WHO recommended limit
+          Colors.pink.shade400,
+          Icons.cake_rounded,
+        ),
       ],
     );
   }
@@ -706,12 +850,28 @@ class _ProductScreenState extends State<ProductScreen> {
       children: [
         Text(
           'Minerals & Vitamins',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: kTextColor,
+          ),
         ),
-        const SizedBox(height: 8),
-        _buildMineralRow('Calcium', '${nutrients.calcium}mg'),
-        _buildMineralRow('Iron', '${nutrients.iron}mg'),
-        _buildMineralRow('Sodium', '${nutrients.sodium}mg'),
+        const SizedBox(height: 10),
+        _buildMineralRow(
+          'Calcium',
+          '${nutrients.calcium?.toStringAsFixed(1) ?? 'N/A'}mg',
+          Icons.grain_rounded, // Placeholder icon
+        ),
+        _buildMineralRow(
+          'Iron',
+          '${nutrients.iron?.toStringAsFixed(1) ?? 'N/A'}mg',
+          Icons.opacity_rounded, // Placeholder icon
+        ),
+        _buildMineralRow(
+          'Sodium',
+          '${nutrients.sodium?.toStringAsFixed(1) ?? 'N/A'}mg',
+          Icons.water_drop_rounded, // Placeholder icon
+        ),
       ],
     );
   }
@@ -722,15 +882,32 @@ class _ProductScreenState extends State<ProductScreen> {
       children: [
         Text(
           'Fat Types',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: kTextColor,
+          ),
         ),
-        const SizedBox(height: 8),
-        _buildNutrientRow('Saturated Fat', '${nutrients.saturatedFat}g'),
+        const SizedBox(height: 10),
+        _buildNutrientRow(
+          'Saturated Fat',
+          '${nutrients.saturatedFat?.toStringAsFixed(1) ?? 'N/A'}g',
+          icon: Icons.warning_amber_rounded,
+          iconColor:
+              (nutrients.saturatedFat ?? 0) > 5
+                  ? kErrorColor // Highlight if high
+                  : kSecondaryTextColor,
+        ),
         if (nutrients.transFat != null)
           _buildNutrientRow(
             'Trans Fat',
-            '${nutrients.transFat}g',
-            textColor: nutrients.transFat! > 0 ? Colors.red : null,
+            '${nutrients.transFat?.toStringAsFixed(1) ?? 'N/A'}g',
+            textColor: (nutrients.transFat ?? 0) > 0 ? kErrorColor : null,
+            icon: Icons.dangerous_rounded,
+            iconColor:
+                (nutrients.transFat ?? 0) > 0
+                    ? kErrorColor
+                    : kSecondaryTextColor,
           ),
       ],
     );
@@ -741,45 +918,77 @@ class _ProductScreenState extends State<ProductScreen> {
     double value,
     double maxValue,
     Color color,
+    IconData icon,
   ) {
-    final percentage = (value / maxValue).clamp(0.0, 1.0);
+    final percentage = maxValue == 0 ? 0.0 : (value / maxValue).clamp(0.0, 1.0);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(label, style: GoogleFonts.poppins()),
+              Icon(icon, size: 18, color: color),
+              const SizedBox(width: 8),
               Text(
-                '${value}g',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: kTextColor,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${value.toStringAsFixed(1)}g',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: kTextColor,
+                  fontSize: 15,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          LinearProgressIndicator(
-            value: percentage,
-            backgroundColor: color.withOpacity(0.1),
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 8,
-            borderRadius: BorderRadius.circular(4),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: percentage,
+              backgroundColor: color.withOpacity(0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              minHeight: 10,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMineralRow(String label, String value) {
+  Widget _buildMineralRow(String label, String value, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: GoogleFonts.poppins(color: Colors.grey[700])),
-          Text(value, style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+          Icon(icon, size: 18, color: kSecondaryTextColor),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                color: kSecondaryTextColor,
+                fontSize: 15,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w500,
+              color: kTextColor,
+              fontSize: 15,
+            ),
+          ),
         ],
       ),
     );
@@ -790,24 +999,33 @@ class _ProductScreenState extends State<ProductScreen> {
     String value, {
     bool isHighlighted = false,
     Color? textColor,
+    IconData? icon,
+    Color? iconColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontWeight: isHighlighted ? FontWeight.w600 : null,
-              color: textColor,
+          if (icon != null) ...[
+            Icon(icon, size: 18, color: iconColor ?? kPrimaryColor),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontWeight: isHighlighted ? FontWeight.bold : FontWeight.normal,
+                color: textColor ?? kTextColor,
+                fontSize: isHighlighted ? 17 : 15,
+              ),
             ),
           ),
           Text(
             value,
             style: GoogleFonts.poppins(
-              fontWeight: isHighlighted ? FontWeight.w600 : FontWeight.w500,
-              color: textColor,
+              fontWeight: isHighlighted ? FontWeight.bold : FontWeight.w500,
+              color: textColor ?? kTextColor,
+              fontSize: isHighlighted ? 17 : 15,
             ),
           ),
         ],
@@ -822,6 +1040,9 @@ class _ProductScreenState extends State<ProductScreen> {
 
   Widget _buildNutrientLevelsCard(NutrientLevels levels) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: kCardColor,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -830,8 +1051,9 @@ class _ProductScreenState extends State<ProductScreen> {
             Text(
               'Nutrient Levels',
               style: GoogleFonts.poppins(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: kTextColor,
               ),
             ),
             const SizedBox(height: 16),
@@ -847,42 +1069,58 @@ class _ProductScreenState extends State<ProductScreen> {
 
   Widget _buildNutrientLevelIndicator(String nutrient, String level) {
     final colors = {
-      'low': Colors.green,
-      'moderate': Colors.orange,
-      'high': Colors.red,
-      'unknown': Colors.grey,
+      'low': Colors.green.shade600,
+      'moderate': Colors.orange.shade600,
+      'high': Colors.red.shade600,
+      'unknown': Colors.grey.shade400,
     };
+    final levelLowerCase = level.toLowerCase();
+    final displayColor = colors[levelLowerCase] ?? Colors.grey.shade400;
+
+    final Map<String, IconData> icons = {
+      'fat': Icons.opacity_rounded, // Example, choose appropriate icons
+      'saturated fat': Icons.warning_amber_rounded,
+      'sugars': Icons.cake_rounded,
+      'salt': Icons.water_drop_outlined,
+    };
+    final nutrientLowerCase = nutrient.toLowerCase();
+    final displayIcon = icons[nutrientLowerCase] ?? Icons.info_outline_rounded;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                nutrient,
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+              Icon(displayIcon, size: 20, color: displayColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  nutrient,
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: kTextColor,
+                  ),
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
+                  horizontal: 10,
+                  vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: colors[level.toLowerCase()]?.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colors[level.toLowerCase()] ?? Colors.grey,
-                  ),
+                  color: displayColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: displayColor.withOpacity(0.5)),
                 ),
                 child: Text(
                   level.toUpperCase(),
                   style: GoogleFonts.poppins(
-                    color: colors[level.toLowerCase()],
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+                    color: displayColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
                   ),
                 ),
               ),
@@ -890,19 +1128,19 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
           const SizedBox(height: 8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(5),
             child: LinearProgressIndicator(
               value:
-                  level.toLowerCase() == 'low'
-                      ? 0.3
-                      : level.toLowerCase() == 'moderate'
+                  levelLowerCase == 'low'
+                      ? 0.25
+                      : levelLowerCase == 'moderate'
                       ? 0.6
-                      : level.toLowerCase() == 'high'
+                      : levelLowerCase == 'high'
                       ? 0.9
-                      : 0.0,
-              backgroundColor: Colors.grey[200],
-              color: colors[level.toLowerCase()],
-              minHeight: 4,
+                      : 0.05, // small value for unknown
+              backgroundColor: Colors.grey[300],
+              color: displayColor,
+              minHeight: 6,
             ),
           ),
         ],
@@ -914,6 +1152,9 @@ class _ProductScreenState extends State<ProductScreen> {
     if (rows.isEmpty) return const SizedBox.shrink();
 
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: kCardColor,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -922,8 +1163,9 @@ class _ProductScreenState extends State<ProductScreen> {
             Text(
               title,
               style: GoogleFonts.poppins(
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: kTextColor,
               ),
             ),
             const SizedBox(height: 16),
@@ -942,20 +1184,35 @@ class _ProductScreenState extends State<ProductScreen> {
     Color? iconColor,
   }) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: kCardColor,
+      clipBehavior: Clip.antiAlias,
       child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        data: Theme.of(
+          context,
+        ).copyWith(dividerColor: Colors.transparent), // Modern look
         child: ExpansionTile(
-          leading: Icon(icon, color: iconColor),
+          leading: Icon(icon, color: iconColor ?? kPrimaryColor, size: 26),
+          tilePadding: const EdgeInsets.symmetric(
+            horizontal: 16.0,
+            vertical: 8.0,
+          ),
           title: Text(
             title,
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w600,
-              fontSize: 16,
+              fontSize: 18, // Slightly larger for section titles
+              color: kTextColor,
             ),
           ),
+          childrenPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ).copyWith(top: 0),
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(top: 8, bottom: 8),
               width: double.infinity,
               child: Wrap(
                 spacing: 8,
@@ -973,42 +1230,48 @@ class _ProductScreenState extends State<ProductScreen> {
   Widget _buildIngredientChip(String ingredient) {
     // Define common allergens for highlighting
     final commonAllergens = {
-      'milk': Colors.blue[100],
-      'egg': Colors.yellow[100],
-      'nuts': Colors.brown[100],
-      'peanut': Colors.brown[100],
-      'soy': Colors.green[100],
-      'wheat': Colors.orange[100],
-      'fish': Colors.blue[100],
-      'shellfish': Colors.red[100],
+      'milk': Colors.blue.shade100,
+      'egg': Colors.yellow.shade100,
+      'nuts': Colors.brown.shade100,
+      'peanut': Colors.deepOrange.shade100,
+      'soy': Colors.green.shade100,
+      'wheat': Colors.orange.shade100,
+      'gluten': Colors.orange.shade200, // Added gluten
+      'fish': Colors.blue.shade200,
+      'shellfish': Colors.pink.shade100,
+      'sesame': Colors.teal.shade100, // Added sesame
+      'sulphites': Colors.purple.shade100, // Added sulphites
+      'mustard': Colors.amber.shade100, // Added mustard
     };
 
     // Check if ingredient contains any allergen
-    final allergenMatch = commonAllergens.entries.firstWhere(
-      (entry) => ingredient.toLowerCase().contains(entry.key),
-      orElse: () => const MapEntry('none', null),
+    String lowerIngredient = ingredient.toLowerCase();
+    final allergenEntry = commonAllergens.entries.firstWhere(
+      (entry) => lowerIngredient.contains(entry.key),
+      orElse: () => MapEntry('none', Colors.grey.shade200),
     );
 
-    final isAllergen = allergenMatch.value != null;
-    final backgroundColor = allergenMatch.value ?? Colors.grey[200];
+    final isAllergen = allergenEntry.key != 'none';
+    final chipColor = isAllergen ? allergenEntry.value : Colors.grey.shade200;
+    final textColor = isAllergen ? Colors.black87 : kSecondaryTextColor;
+    final fontWeight = isAllergen ? FontWeight.w600 : FontWeight.normal;
 
     return Chip(
       label: Text(
-        ingredient,
+        ingredient.cleanupLabel, // Use the extension method
         style: GoogleFonts.poppins(
-          fontSize: 12,
-          color: isAllergen ? Colors.black87 : Colors.black54,
-          fontWeight: isAllergen ? FontWeight.w600 : FontWeight.normal,
+          fontSize: 13,
+          color: textColor,
+          fontWeight: fontWeight,
         ),
       ),
-      backgroundColor: backgroundColor,
+      backgroundColor: chipColor,
       side:
           isAllergen
-              ? BorderSide(
-                color: backgroundColor!.withRed(backgroundColor.red + 50),
-              )
-              : null,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+              ? BorderSide(color: chipColor.darken(15), width: 1.5)
+              : BorderSide(color: Colors.grey.shade300),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 }
@@ -1029,14 +1292,22 @@ class InfoRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              label.isNotEmpty ? label : 'N/A',
+              label.isNotEmpty ? label.cleanupLabel : 'N/A',
               style: GoogleFonts.poppins(
-                color: Colors.grey[700],
+                color: kSecondaryTextColor,
                 fontWeight: FontWeight.w500,
+                fontSize: 15,
               ),
             ),
           ),
-          Expanded(flex: 3, child: Text(value, style: GoogleFonts.poppins())),
+          const SizedBox(width: 10),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value.isNotEmpty ? value : 'N/A',
+              style: GoogleFonts.poppins(color: kTextColor, fontSize: 15),
+            ),
+          ),
         ],
       ),
     );
@@ -1044,13 +1315,46 @@ class InfoRow extends StatelessWidget {
 }
 
 // Add these extension methods for better visual indicators
+extension ColorX on Color {
+  /// Darkens a color by [percent] (between 0 and 100).
+  Color darken([int percent = 10]) {
+    assert(0 <= percent && percent <= 100);
+    final f = 1 - percent / 100;
+    return Color.fromARGB(
+      alpha,
+      (red * f).round(),
+      (green * f).round(),
+      (blue * f).round(),
+    );
+  }
+
+  /// Lightens a color by [percent] (between 0 and 100).
+  Color lighten([int percent = 10]) {
+    assert(0 <= percent && percent <= 100);
+    final p = percent / 100;
+    return Color.fromARGB(
+      alpha,
+      red + ((255 - red) * p).round(),
+      green + ((255 - green) * p).round(),
+      blue + ((255 - blue) * p).round(),
+    );
+  }
+}
+
 extension StringX on String {
-  String get cleanupLabel => split('_')
-      .map(
-        (word) =>
-            word.isEmpty
-                ? ''
-                : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
-      )
-      .join(' ');
+  String get cleanupLabel {
+    if (isEmpty) return 'N/A';
+    return split(RegExp(r'[\s_]+')) // Split by space or underscore
+        .map(
+          (word) =>
+              word.isEmpty
+                  ? ''
+                  : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
+        )
+        .join(' ')
+        .replaceAllMapped(
+          RegExp(r':\s*([a-z])'),
+          (match) => ': ${match.group(1)!.toUpperCase()}',
+        ); // Capitalize after colon
+  }
 }

@@ -57,6 +57,8 @@ dependencies:
   bloc:
   get_it:
 
+  percent_indicator:
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

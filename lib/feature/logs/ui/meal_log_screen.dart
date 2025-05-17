@@ -162,19 +162,17 @@ class MealLogScreen extends StatelessWidget {
                     context.read<MealLogCubit>().removeMeal(type, index);
                   },
                   child: ListTile(
-                    title: Text(
-                      item.name,
-                      style: GoogleFonts.poppins(),
-                    ),
-                    subtitle: item.quantity != null
-                        ? Text(
-                            item.quantity!,
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          )
-                        : null,
+                    title: Text(item.name, style: GoogleFonts.poppins()),
+                    subtitle:
+                        item.quantity != null
+                            ? Text(
+                              item.quantity!,
+                              style: GoogleFonts.poppins(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            )
+                            : null,
                   ),
                 );
               },
@@ -198,56 +196,58 @@ class MealLogScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (_, controller) => Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Text(
-                    'Add ${type.name.capitalize()} Item',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+      builder:
+          (context) => DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            minChildSize: 0.5,
+            maxChildSize: 0.9,
+            expand: false,
+            builder:
+                (_, controller) => Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Add ${type.name.capitalize()} Item',
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            Expanded(
-              child: ListView.builder(
-                controller: controller,
-                itemCount: suggestions.length,
-                itemBuilder: (context, index) {
-                  final suggestion = suggestions[index];
-                  return ListTile(
-                    title: Text(suggestion),
-                    trailing: const Icon(Icons.add),
-                    onTap: () {
-                      context.read<MealLogCubit>().addMeal(
-                            type,
-                            FoodItem(name: suggestion),
+                    const Divider(),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: controller,
+                        itemCount: suggestions.length,
+                        itemBuilder: (context, index) {
+                          final suggestion = suggestions[index];
+                          return ListTile(
+                            title: Text(suggestion),
+                            trailing: const Icon(Icons.add),
+                            onTap: () {
+                              context.read<MealLogCubit>().addMeal(
+                                type,
+                                FoodItem(name: suggestion),
+                              );
+                              Navigator.pop(context);
+                            },
                           );
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+          ),
     );
   }
 
@@ -258,76 +258,81 @@ class MealLogScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          minChildSize: 0.5,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (_, controller) => Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Text(
-                      'Meal Analysis',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
+      builder:
+          (context) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: DraggableScrollableSheet(
+              initialChildSize: 0.7,
+              minChildSize: 0.5,
+              maxChildSize: 0.9,
+              expand: false,
+              builder:
+                  (_, controller) => Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Meal Analysis',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              Expanded(
-                child: FutureBuilder(
-                  future: _getGeminiInsights(state),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text('Error: ${snapshot.error}'),
-                      );
-                    }
-                    return ListView(
-                      controller: controller,
-                      padding: const EdgeInsets.all(16),
-                      children: [
-                        _buildInsightSection(
-                          'Nutritional Balance',
-                          snapshot.data?['balance'] ?? '',
-                          snapshot.data?['metrics'],
+                      const Divider(),
+                      Expanded(
+                        child: FutureBuilder(
+                          future: _getGeminiInsights(state),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            if (snapshot.hasError) {
+                              return Center(
+                                child: Text('Error: ${snapshot.error}'),
+                              );
+                            }
+                            return ListView(
+                              controller: controller,
+                              padding: const EdgeInsets.all(16),
+                              children: [
+                                _buildInsightSection(
+                                  'Nutritional Balance',
+                                  snapshot.data?['balance'] ?? '',
+                                  snapshot.data?['metrics'],
+                                ),
+                                _buildInsightSection(
+                                  'Caloric Intake',
+                                  snapshot.data?['calories'] ?? '',
+                                ),
+                                _buildInsightSection(
+                                  'Suggestions',
+                                  snapshot.data?['suggestions'] ?? '',
+                                ),
+                              ],
+                            );
+                          },
                         ),
-                        _buildInsightSection(
-                          'Caloric Intake',
-                          snapshot.data?['calories'] ?? '',
-                        ),
-                        _buildInsightSection(
-                          'Suggestions',
-                          snapshot.data?['suggestions'] ?? '',
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ],
+                      ),
+                    ],
+                  ),
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -380,37 +385,40 @@ class MealLogScreen extends StatelessWidget {
     for (final Match match in exp.allMatches(text)) {
       // Add text before the bold part
       if (match.start > lastIndex) {
-        spans.add(TextSpan(
-          text: text
-              .substring(lastIndex, match.start)
-              .replaceAll('FontWeight.w400', ''),
-          style: defaultStyle,
-        ));
+        spans.add(
+          TextSpan(
+            text: text
+                .substring(lastIndex, match.start)
+                .replaceAll('FontWeight.w400', ''),
+            style: defaultStyle,
+          ),
+        );
       }
 
       // Add bold text
-      spans.add(TextSpan(
-        text: match.group(1)?.replaceAll('FontWeight.w400', '') ?? '',
-        style: boldStyle,
-      ));
+      spans.add(
+        TextSpan(
+          text: match.group(1)?.replaceAll('FontWeight.w400', '') ?? '',
+          style: boldStyle,
+        ),
+      );
 
       lastIndex = match.end;
     }
 
     // Add remaining text
     if (lastIndex < text.length) {
-      spans.add(TextSpan(
-        text: text.substring(lastIndex).replaceAll('FontWeight.w400', ''),
-        style: defaultStyle,
-      ));
+      spans.add(
+        TextSpan(
+          text: text.substring(lastIndex).replaceAll('FontWeight.w400', ''),
+          style: defaultStyle,
+        ),
+      );
     }
 
     return RichText(
       textAlign: TextAlign.left,
-      text: TextSpan(
-        style: defaultStyle,
-        children: spans,
-      ),
+      text: TextSpan(style: defaultStyle, children: spans),
     );
   }
 
@@ -449,14 +457,20 @@ class MealLogScreen extends StatelessWidget {
   }
 
   Widget _buildProgressBar(
-      String label, double value, double standard, Color color) {
+    String label,
+    double value,
+    double standard,
+    Color color,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             SizedBox(
-                width: 100, child: Text(label, style: GoogleFonts.poppins())),
+              width: 100,
+              child: Text(label, style: GoogleFonts.poppins()),
+            ),
             Expanded(
               child: Stack(
                 children: [
@@ -500,13 +514,14 @@ class MealLogScreen extends StatelessWidget {
           value < standard
               ? 'Need ${(standard - value).round()}% more'
               : value > standard
-                  ? '${(value - standard).round()}% excess'
-                  : 'Optimal level',
+              ? '${(value - standard).round()}% excess'
+              : 'Optimal level',
           style: GoogleFonts.poppins(
             fontSize: 12,
-            color: value == standard
-                ? Colors.green
-                : value < standard
+            color:
+                value == standard
+                    ? Colors.green
+                    : value < standard
                     ? Colors.orange
                     : Colors.red,
           ),
@@ -517,49 +532,50 @@ class MealLogScreen extends StatelessWidget {
 
   Widget _buildSuggestions(String suggestions) {
     // Convert string array to actual list
-    final suggestionList = suggestions
-        .replaceAll('[', '')
-        .replaceAll(']', '')
-        .split(',')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
+    final suggestionList =
+        suggestions
+            .replaceAll('[', '')
+            .replaceAll(']', '')
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: suggestionList
-          .map((suggestion) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(top: 6, right: 8),
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        suggestion,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          height: 1.5,
+      children:
+          suggestionList
+              .map(
+                (suggestion) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(top: 6, right: 8),
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(4),
                         ),
                       ),
-                    ),
-                  ],
+                      Expanded(
+                        child: Text(
+                          suggestion,
+                          style: GoogleFonts.poppins(fontSize: 14, height: 1.5),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ))
-          .toList(),
+              )
+              .toList(),
     );
   }
 
   Future<Map<String, String>> _getGeminiInsights(MealLogState state) async {
-    const apiKey = 'AIzaSyDwClwNn2DQZCnqzoOnPM9WwN_01ZjTdsM';
+    const apiKey = 'AIzaSyB4kcWMemFLQ8dkJqgdTsOmN1NN5pwO30o';
     const url =
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
@@ -592,17 +608,18 @@ class MealLogScreen extends StatelessWidget {
           'contents': [
             {
               'parts': [
-                {'text': prompt}
-              ]
-            }
-          ]
+                {'text': prompt},
+              ],
+            },
+          ],
         }),
       );
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        final text = responseData['candidates'][0]['content']['parts'][0]
-            ['text'] as String;
+        final text =
+            responseData['candidates'][0]['content']['parts'][0]['text']
+                as String;
 
         final startIndex = text.indexOf('{');
         final endIndex = text.lastIndexOf('}') + 1;
@@ -611,9 +628,11 @@ class MealLogScreen extends StatelessWidget {
         final Map<String, dynamic> insights = jsonDecode(jsonStr);
 
         return {
-          'balance': insights['balance']?.toString() ??
+          'balance':
+              insights['balance']?.toString() ??
               'No balance analysis available',
-          'calories': insights['calories']?.toString() ??
+          'calories':
+              insights['calories']?.toString() ??
               'No caloric analysis available',
           'suggestions':
               insights['suggestions']?.toString() ?? 'No suggestions available',
@@ -637,8 +656,10 @@ class MealLogScreen extends StatelessWidget {
   String _formatMeals(List<FoodItem> items) {
     if (items.isEmpty) return 'No meals logged';
     return items
-        .map((item) =>
-            '${item.name}${item.quantity != null ? ' (${item.quantity})' : ''}')
+        .map(
+          (item) =>
+              '${item.name}${item.quantity != null ? ' (${item.quantity})' : ''}',
+        )
         .join(', ');
   }
 }
