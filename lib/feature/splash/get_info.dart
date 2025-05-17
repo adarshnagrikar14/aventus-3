@@ -1,5 +1,5 @@
+import 'package:restart/restart.dart';
 import 'package:flutter/material.dart';
-import 'package:hackathon/feature/home/dashboard_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GetInfo extends StatefulWidget {
@@ -38,15 +38,16 @@ class _GetInfoState extends State<GetInfo> {
       await prefs.setBool('isFirstTime', false);
 
       if (mounted) {
-        // Navigate to DashboardScreen
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-          (Route<dynamic> route) => false, // Remove all previous routes
-        );
+        // // Navigate to DashboardScreen
+        // Navigator.pushAndRemoveUntil(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        //   (Route<dynamic> route) => false, // Remove all previous routes
+        // );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Information saved successfully!')),
         );
+        restart();
       }
     }
   }
