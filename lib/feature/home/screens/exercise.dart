@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hackathon/feature/functions/exercise_perform.dart'; // Import ExercisePerform
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class Exercise extends StatefulWidget {
   const Exercise({super.key});
@@ -268,6 +270,11 @@ class _ExerciseState extends State<Exercise> {
                             : Colors.orange.shade600,
                   ),
                 );
+
+                // If workout was completed, fetch feedback
+                if (completed) {
+                  _fetchAndShowFeedback(exerciseInternalKey, achievedReps);
+                }
               }
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -299,5 +306,168 @@ class _ExerciseState extends State<Exercise> {
         ),
       ),
     );
+  }
+
+  Future<void> _fetchAndShowFeedback(
+    String exerciseName,
+    int completedSets,
+  ) async {
+    // Show loading bottom sheet first
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (context) => Container(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Generating Feedback...',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.pink.shade700,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Please wait while we analyze your workout. This may take a moment.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.lato(fontSize: 14),
+                ),
+                SizedBox(height: 20),
+                CircularProgressIndicator(color: Colors.pink.shade400),
+              ],
+            ),
+          ),
+    );
+
+    try {
+      // Get time of day
+      final hour = DateTime.now().hour;
+      String timeOfDay = "afternoon";
+      if (hour < 12) {
+        timeOfDay = "morning";
+      } else if (hour >= 18) {
+        timeOfDay = "evening";
+      }
+
+      // Prepare request body
+      final requestBody = {
+        "week_pregnancy": _pregnancyWeek,
+        "n_sets": completedSets,
+        "time": timeOfDay,
+        "name": exerciseName,
+      };
+
+      // Make API call
+      final response = await http.post(
+        Uri.parse('http://192.168.105.156:8000/feedback'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        // Parse response
+        final responseData = jsonDecode(response.body);
+        final feedback = responseData['feedback'] as String;
+
+        // Extract the content between FINAL ANSWER: and the end of the string
+        final finalAnswerStart = feedback.indexOf('FINAL ANSWER:');
+        String cleanFeedback = feedback;
+
+        if (finalAnswerStart != -1) {
+          cleanFeedback =
+              feedback
+                  .substring(finalAnswerStart + 'FINAL ANSWER:'.length)
+                  .replaceAll('```', '')
+                  .trim();
+        }
+
+        // Close loading sheet and show feedback
+        if (mounted) {
+          Navigator.pop(context); // Close loading bottom sheet
+
+          // Show feedback in a new bottom sheet
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder:
+                (context) => Container(
+                  padding: EdgeInsets.all(20),
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.7,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Your Workout Feedback',
+                        style: GoogleFonts.lato(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.pink.shade700,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: Text(
+                            cleanFeedback,
+                            style: GoogleFonts.lato(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Align(
+                        alignment: Alignment.center,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.pink.shade600,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                            ),
+                          ),
+                          child: Text('Close', style: GoogleFonts.lato()),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+          );
+        }
+      } else {
+        // Handle error
+        if (mounted) {
+          Navigator.pop(context); // Close loading bottom sheet
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to get feedback. Please try again.'),
+              backgroundColor: Colors.red.shade600,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Handle exception
+      if (mounted) {
+        Navigator.pop(context); // Close loading bottom sheet
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
+    }
   }
 }
