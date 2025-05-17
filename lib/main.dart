@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hackathon/core/injection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hackathon/feature/logs/cubit/meal_log_cubit.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hackathon/feature/splash/splash_screen.dart';
@@ -28,7 +29,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => getIt<ProductCubit>())],
+      providers: [
+        BlocProvider(create: (_) => getIt<ProductCubit>()),
+        BlocProvider(create: (_) => getIt<MealLogCubit>()..loadLogs()),
+      ],
       child: MaterialApp(
         title: 'Garbh',
         home: const SplashScreen(),

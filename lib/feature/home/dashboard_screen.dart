@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hackathon/feature/food/home_food.dart';
-import 'package:hackathon/feature/food/image_scan_screen.dart';
-import 'package:hackathon/feature/food/product/ui/product_screen.dart';
 import 'package:hackathon/feature/home/screens/exercise.dart';
+import 'package:hackathon/feature/food/product/ui/product_screen.dart';
+import 'package:hackathon/feature/home/screens/home.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -16,12 +16,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // Placeholder widgets for each tab
   static const List<Widget> _widgetOptions = <Widget>[
-    Center(
-      child: Text(
-        'Home Page',
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      ),
-    ),
+    Home(),
     HomeFood(),
     Exercise(),
     ProductScreen(),

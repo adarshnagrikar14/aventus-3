@@ -1,4 +1,6 @@
 import 'package:get_it/get_it.dart';
+import 'package:hackathon/feature/logs/cubit/meal_log_cubit.dart';
+import 'package:hackathon/feature/logs/data/repositories/meal_log_repository.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hackathon/feature/food/product/logic/cubit/product_cubit.dart';
@@ -21,7 +23,9 @@ Future<void> setupInjection() async {
 
   // Repositories
   getIt.registerLazySingleton<ProductRepository>(() => ProductRepository());
+  getIt.registerLazySingleton<MealLogRepository>(() => MealLogRepository(getIt()));
 
   // Cubits
   getIt.registerFactory(() => ProductCubit(getIt()));
+  getIt.registerFactory(() => MealLogCubit(getIt()));
 }
