@@ -42,6 +42,12 @@ dependencies:
   google_fonts:
 
   restart:
+  camera:
+  web_socket_channel:
+  image:
+  path_provider:
+  permission_handler:
+  socket_io_client:
 
 dev_dependencies:
   flutter_test:

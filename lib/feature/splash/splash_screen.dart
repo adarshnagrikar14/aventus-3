@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:hackathon/feature/home/dashboard_screen.dart';
 import 'package:hackathon/feature/splash/get_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,26 +16,24 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(const Duration(seconds: 3), () {
-      checkFirstTime();
+      _checkLoginStatus();
     });
   }
 
-  void checkFirstTime() async {
+  Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final isFirstTime = prefs.getBool('isFirstTime') ?? true;
 
-    if (isFirstTime) {
-      if (mounted) {
+    if (mounted) {
+      if (isFirstTime) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const GetInfo()),
         );
-      }
-    } else {
-      if (mounted) {
+      } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const GetInfo()),
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
         );
       }
     }

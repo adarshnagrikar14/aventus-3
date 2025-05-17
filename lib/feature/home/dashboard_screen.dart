@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hackathon/feature/home/screens/exercise.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -24,12 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
       ),
     ),
-    Center(
-      child: Text(
-        'Exercise Page',
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      ),
-    ),
+    Exercise(),
     Center(
       child: Text(
         'AI Assistant Page',
