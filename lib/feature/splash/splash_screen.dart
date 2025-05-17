@@ -1,8 +1,11 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:hackathon/feature/home/dashboard_screen.dart';
 import 'package:hackathon/feature/splash/get_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,13 +14,39 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  // Animation controller
+  late AnimationController _controller;
+  // Animation for fade and scale
+  late Animation<double> _animation;
+
   @override
   void initState() {
     super.initState();
+
+    // Initialize animation controller
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+
+    // Define the animation (fade and slight scale)
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+
+    // Start the animation
+    _controller.forward();
+
+    // Timer to navigate after animation
     Timer(const Duration(seconds: 3), () {
       _checkLoginStatus();
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose(); // Dispose the controller
+    super.dispose();
   }
 
   Future<void> _checkLoginStatus() async {
@@ -42,28 +71,42 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade100,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.child_care, size: 100, color: Colors.pink.shade400),
-            const SizedBox(height: 24),
-            Text(
-              'Garbh',
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: Colors.pink.shade800,
-                letterSpacing: 1.5,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).primaryColor.withOpacity(0.7),
+              Theme.of(context).primaryColor.withOpacity(0.85),
+              Theme.of(context).primaryColor.withOpacity(1),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: FadeTransition(
+              opacity: _animation,
+              child: ScaleTransition(
+                scale: _animation,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Garbh',
+                      style: GoogleFonts.pacifico(
+                        // Using Pacifico font for a more friendly feel
+                        fontSize: 28, // Increased font size
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Your Pregnancy Companion',
-              style: TextStyle(fontSize: 18, color: Colors.pink.shade600),
-            ),
-          ],
+          ),
         ),
       ),
     );

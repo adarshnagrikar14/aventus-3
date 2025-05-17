@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hackathon/feature/food/home_food.dart';
+import 'package:hackathon/feature/food/image_scan_screen.dart';
+import 'package:hackathon/feature/food/product/ui/product_screen.dart';
 import 'package:hackathon/feature/home/screens/exercise.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -19,19 +22,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
       ),
     ),
-    Center(
-      child: Text(
-        'Food Page',
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      ),
-    ),
+    HomeFood(),
     Exercise(),
-    Center(
-      child: Text(
-        'AI Assistant Page',
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-      ),
-    ),
+    ProductScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -45,39 +38,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Garbh Dashboard'),
-        backgroundColor: Colors.pink,
+        backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
-        automaticallyImplyLeading: false, // To remove back button
+        automaticallyImplyLeading: false,
       ),
-      body: IndexedStack(
-        // Use IndexedStack to keep state of each tab
-        index: _selectedIndex,
-        children: _widgetOptions,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu),
+      body: IndexedStack(index: _selectedIndex, children: _widgetOptions),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: _onItemTapped,
+        destinations: const <NavigationDestination>[
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.restaurant_menu_outlined),
+            selectedIcon: Icon(Icons.restaurant_menu),
             label: 'Food',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center),
+          NavigationDestination(
+            icon: Icon(Icons.fitness_center_outlined),
+            selectedIcon: Icon(Icons.fitness_center),
             label: 'Exercise',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assistant),
+          NavigationDestination(
+            icon: Icon(Icons.assistant_outlined),
+            selectedIcon: Icon(Icons.assistant),
             label: 'AI Assistant',
           ),
         ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.pink,
-        unselectedItemColor: Colors.grey.shade600,
-        showUnselectedLabels: true,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed, // Ensures all labels are visible
+        elevation: 4.0,
         backgroundColor: Colors.white,
-        elevation: 8.0,
+        indicatorColor: Theme.of(context).colorScheme.primaryContainer,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
     );
   }
