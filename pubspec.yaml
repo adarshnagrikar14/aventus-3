@@ -60,6 +60,10 @@ dependencies:
   percent_indicator:
   model_viewer_plus: ^1.9.3
 
+  speech_to_text:
+  flutter_tts:
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

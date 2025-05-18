@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hackathon/feature/chat/chat_bot.dart';
 import 'package:hackathon/feature/food/home_food.dart';
-import 'package:hackathon/feature/home/screens/exercise.dart';
-import 'package:hackathon/feature/food/product/ui/product_screen.dart';
 import 'package:hackathon/feature/home/screens/home.dart';
+import 'package:hackathon/feature/home/screens/exercise.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,7 +19,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Home(),
     HomeFood(),
     Exercise(),
-    ProductScreen(),
+    ChatBot(),
   ];
 
   void _onItemTapped(int index) {
