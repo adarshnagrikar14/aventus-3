@@ -70,6 +70,50 @@ class _ChatBotState extends State<ChatBot> {
     await _flutterTts.setPitch(1.0);
     await _flutterTts.setSpeechRate(0.5);
 
+    // Example: Try to set a female voice
+    // You'll need to discover available voices on your target device/platform
+    // and use the correct identifier.
+    try {
+      // Get available voices
+      List<dynamic> voices = await _flutterTts.getVoices;
+      print("Available voices: $voices");
+
+      // Attempt to find and set a female voice (example identifiers)
+      // These identifiers are examples and might not work on your specific device.
+      // You should inspect the `voices` list printed above to find suitable female voices.
+      Map? femaleVoice;
+
+      // Try to find a voice with "female" in its name (common but not guaranteed)
+      femaleVoice = voices.firstWhere(
+        (voice) =>
+            voice['name'] != null &&
+            voice['name'].toLowerCase().contains('female'),
+        orElse: () => null,
+      );
+
+      // If not found by name, you might try by other properties if available,
+      // or a known good identifier for a specific platform.
+      // Example for a specific voice identifier (replace with an actual one)
+      // if (femaleVoice == null) {
+      //   femaleVoice = voices.firstWhere(
+      //     (voice) => voice['name'] == 'en-us-x-sfg#female_1-local', // Example identifier
+      //     orElse: () => null,
+      //   );
+      // }
+
+      if (femaleVoice != null) {
+        await _flutterTts.setVoice({
+          "name": femaleVoice['name'],
+          "locale": femaleVoice['locale'],
+        });
+        print("Selected voice: ${femaleVoice['name']}");
+      } else {
+        print("Female voice not found, using default.");
+      }
+    } catch (e) {
+      print("Error setting voice: $e");
+    }
+
     _flutterTts.setCompletionHandler(() {
       setState(() {
         // Update UI if needed when speech completes
@@ -356,7 +400,7 @@ class ChatMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment:
             isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -364,21 +408,22 @@ class ChatMessage extends StatelessWidget {
         children: [
           if (!isUser) ...[
             CircleAvatar(
+              radius: 14,
               backgroundColor: Colors.pink.shade100,
               child: Icon(
                 Icons.health_and_safety,
                 color: Colors.pink.shade700,
-                size: 18,
+                size: 14,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
           ],
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: isUser ? Colors.pink.shade400 : Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withOpacity(0.1),
@@ -388,20 +433,43 @@ class ChatMessage extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Text(
-                text,
-                style: GoogleFonts.poppins(
-                  color: isUser ? Colors.white : Colors.black87,
-                  fontSize: 14,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: GoogleFonts.poppins(
+                        color: isUser ? Colors.white : Colors.black87,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  if (!isUser) ...[
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () {
+                        final FlutterTts tts = FlutterTts();
+                        tts.speak(text);
+                      },
+                      child: Icon(
+                        Icons.volume_up,
+                        size: 16,
+                        color: Colors.pink.shade300,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
           if (isUser) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             CircleAvatar(
+              radius: 14,
               backgroundColor: Colors.pink.shade300,
-              child: const Icon(Icons.person, color: Colors.white, size: 18),
+              child: const Icon(Icons.person, color: Colors.white, size: 14),
             ),
           ],
         ],
