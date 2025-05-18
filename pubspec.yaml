@@ -62,6 +62,7 @@ dependencies:
 
   speech_to_text:
   flutter_tts:
+  audioplayers:
 
 
 dev_dependencies:
