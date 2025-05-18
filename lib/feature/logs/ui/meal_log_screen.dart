@@ -9,8 +9,30 @@ import 'package:hackathon/feature/logs/data/meal_suggestions.dart';
 import 'package:hackathon/feature/logs/data/models/meal_log_model.dart';
 import 'package:http/http.dart' as http;
 
-class MealLogScreen extends StatelessWidget {
+class MealLogScreen extends StatefulWidget {
   const MealLogScreen({super.key});
+
+  @override
+  State<MealLogScreen> createState() => _MealLogScreenState();
+}
+
+class _MealLogScreenState extends State<MealLogScreen> {
+  // Track which analysis types are selected
+  final Set<String> _selectedAnalysisTypes = {
+    'Nutritional Balance',
+    'Suggestions',
+    'Caloric Intake',
+  };
+
+  // Available analysis types for chips
+  final List<String> _analysisTypes = [
+    'Nutritional Balance',
+    'Caloric Intake',
+    'Suggestions',
+    'Meal Timing',
+    'Hydration',
+    'Portion Size',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +44,8 @@ class MealLogScreen extends StatelessWidget {
               'Meal Log',
               style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            elevation: 0,
           ),
           body: Column(
             children: [
@@ -61,52 +85,96 @@ class MealLogScreen extends StatelessWidget {
                 ),
               ),
               if (state.hasMinimumMeals) ...[
-                Container(
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(20),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -3),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        'Generate Insights',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
+                      Row(
                         children: [
-                          ChoiceChip(
-                            label: const Text('Nutritional Balance'),
-                            selected: true,
-                            onSelected: (_) {},
+                          const Icon(Icons.analytics_outlined),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Generate Insights',
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                          ChoiceChip(
-                            label: const Text('Caloric Intake'),
-                            selected: true,
-                            onSelected: (_) {},
-                          ),
-                          ChoiceChip(
-                            label: const Text('Suggestions'),
-                            selected: true,
-                            onSelected: (_) {},
+                          const Spacer(),
+                          Text(
+                            'Select max 3',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children:
+                            _analysisTypes.map((type) {
+                              final isSelected = _selectedAnalysisTypes
+                                  .contains(type);
+                              return ChoiceChip(
+                                label: Text(type),
+                                selected: isSelected,
+                                onSelected:
+                                    (selected) =>
+                                        _updateSelectedChips(type, selected),
+                                labelStyle: TextStyle(
+                                  color:
+                                      isSelected
+                                          ? Colors.white
+                                          : Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
+                                  fontWeight:
+                                      isSelected
+                                          ? FontWeight.w500
+                                          : FontWeight.normal,
+                                ),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.surface,
+                                selectedColor:
+                                    Theme.of(context).colorScheme.primary,
+                              );
+                            }).toList(),
+                      ),
                       const SizedBox(height: 16),
                       FilledButton.icon(
-                        onPressed: () => _generateInsights(context),
+                        onPressed:
+                            _selectedAnalysisTypes.isEmpty
+                                ? null // Disable button if no chips selected
+                                : () => _generateInsights(context),
                         icon: const Icon(Icons.analytics),
                         label: const Text('Analyze Meals'),
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(50),
+                          foregroundColor: Colors.white,
+                          disabledForegroundColor: Colors.white.withOpacity(
+                            0.5,
+                          ),
+                          disabledBackgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withOpacity(0.5),
                         ),
                       ),
                     ],
@@ -120,6 +188,25 @@ class MealLogScreen extends StatelessWidget {
     );
   }
 
+  void _updateSelectedChips(String type, bool selected) {
+    setState(() {
+      if (selected && _selectedAnalysisTypes.length < 3) {
+        _selectedAnalysisTypes.add(type);
+      } else if (!selected) {
+        _selectedAnalysisTypes.remove(type);
+      } else {
+        // If trying to select more than 3, show a snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('You can select up to 3 analysis types'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+  }
+
   Widget _buildMealSection(
     String title,
     IconData icon,
@@ -127,42 +214,89 @@ class MealLogScreen extends StatelessWidget {
     MealType type,
     BuildContext context,
   ) {
+    final colorMap = {
+      MealType.breakfast: Colors.amber.shade700,
+      MealType.lunch: Colors.green.shade600,
+      MealType.snacks: Colors.purple.shade300,
+      MealType.dinner: Colors.indigo.shade400,
+    };
+
+    final color = colorMap[type] ?? Theme.of(context).primaryColor;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Column(
         children: [
-          ListTile(
-            leading: Icon(icon),
-            title: Text(
-              title,
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          Container(
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => _showAddMealSheet(context, type),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: color.withOpacity(0.2),
+                child: Icon(icon, color: color),
+              ),
+              title: Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+              trailing: ElevatedButton.icon(
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Add'),
+                onPressed: () => _showAddMealSheet(context, type),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
+                  ),
+                ),
+              ),
             ),
           ),
           if (items.isNotEmpty)
-            ListView.builder(
+            ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: items.length,
+              separatorBuilder:
+                  (context, index) =>
+                      Divider(height: 1, color: Colors.grey.shade200),
               itemBuilder: (context, index) {
                 final item = items[index];
                 return Dismissible(
                   key: Key('${type.name}_${item.name}_$index'),
                   direction: DismissDirection.endToStart,
                   background: Container(
-                    color: Colors.red,
+                    color: Colors.red.shade100,
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 16),
-                    child: const Icon(Icons.delete, color: Colors.white),
+                    child: Icon(Icons.delete, color: Colors.red.shade700),
                   ),
                   onDismissed: (_) {
                     context.read<MealLogCubit>().removeMeal(type, index);
                   },
                   child: ListTile(
-                    title: Text(item.name, style: GoogleFonts.poppins()),
+                    title: Text(
+                      item.name,
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                    ),
                     subtitle:
                         item.quantity != null
                             ? Text(
@@ -173,6 +307,16 @@ class MealLogScreen extends StatelessWidget {
                               ),
                             )
                             : null,
+                    trailing: IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        size: 18,
+                        color: Colors.grey.shade500,
+                      ),
+                      onPressed: () {
+                        context.read<MealLogCubit>().removeMeal(type, index);
+                      },
+                    ),
                   ),
                 );
               },
@@ -180,9 +324,20 @@ class MealLogScreen extends StatelessWidget {
           if (items.isEmpty)
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(
-                'No items added',
-                style: GoogleFonts.poppins(color: Colors.grey),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: Colors.grey.shade500,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'No items added',
+                    style: GoogleFonts.poppins(color: Colors.grey.shade500),
+                  ),
+                ],
               ),
             ),
         ],
@@ -192,6 +347,8 @@ class MealLogScreen extends StatelessWidget {
 
   void _showAddMealSheet(BuildContext context, MealType type) {
     final suggestions = MealSuggestions.getSuggestions(type);
+    final TextEditingController customMealController = TextEditingController();
+    final TextEditingController quantityController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
@@ -207,6 +364,16 @@ class MealLogScreen extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 5,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
                       child: Row(
                         children: [
                           Text(
@@ -224,7 +391,84 @@ class MealLogScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Divider(),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Add custom item',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: customMealController,
+                            decoration: InputDecoration(
+                              hintText: 'Enter food item',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: quantityController,
+                            decoration: InputDecoration(
+                              hintText: 'Quantity (optional)',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: () {
+                              if (customMealController.text.isNotEmpty) {
+                                context.read<MealLogCubit>().addMeal(
+                                  type,
+                                  FoodItem(
+                                    name: customMealController.text,
+                                    quantity:
+                                        quantityController.text.isEmpty
+                                            ? null
+                                            : quantityController.text,
+                                  ),
+                                );
+                                Navigator.pop(context);
+                              }
+                            },
+                            child: const Text('Add Custom Item'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(thickness: 1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Suggestions',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
                     Expanded(
                       child: ListView.builder(
                         controller: controller,
@@ -232,15 +476,23 @@ class MealLogScreen extends StatelessWidget {
                         itemBuilder: (context, index) {
                           final suggestion = suggestions[index];
                           return ListTile(
-                            title: Text(suggestion),
-                            trailing: const Icon(Icons.add),
-                            onTap: () {
-                              context.read<MealLogCubit>().addMeal(
-                                type,
-                                FoodItem(name: suggestion),
-                              );
-                              Navigator.pop(context);
-                            },
+                            title: Text(
+                              suggestion,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.add_circle_outline),
+                              color: Theme.of(context).primaryColor,
+                              onPressed: () {
+                                context.read<MealLogCubit>().addMeal(
+                                  type,
+                                  FoodItem(name: suggestion),
+                                );
+                                Navigator.pop(context);
+                              },
+                            ),
                           );
                         },
                       ),
@@ -273,6 +525,15 @@ class MealLogScreen extends StatelessWidget {
                   (_, controller) => Column(
                     children: [
                       Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        height: 4,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      Container(
                         padding: const EdgeInsets.all(16),
                         child: Row(
                           children: [
@@ -298,33 +559,113 @@ class MealLogScreen extends StatelessWidget {
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
+                              return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const CircularProgressIndicator(),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Analyzing your meals...',
+                                      style: GoogleFonts.poppins(),
+                                    ),
+                                  ],
+                                ),
                               );
                             }
                             if (snapshot.hasError) {
                               return Center(
-                                child: Text('Error: ${snapshot.error}'),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.error_outline,
+                                      color: Colors.red.shade400,
+                                      size: 48,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Error: ${snapshot.error}',
+                                      style: GoogleFonts.poppins(),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
                               );
                             }
-                            return ListView(
-                              controller: controller,
-                              padding: const EdgeInsets.all(16),
-                              children: [
+
+                            final analysisWidgets = <Widget>[];
+
+                            // Only show selected analysis types
+                            if (_selectedAnalysisTypes.contains(
+                              'Nutritional Balance',
+                            )) {
+                              analysisWidgets.add(
                                 _buildInsightSection(
                                   'Nutritional Balance',
                                   snapshot.data?['balance'] ?? '',
                                   snapshot.data?['metrics'],
                                 ),
+                              );
+                            }
+
+                            if (_selectedAnalysisTypes.contains(
+                              'Caloric Intake',
+                            )) {
+                              analysisWidgets.add(
                                 _buildInsightSection(
                                   'Caloric Intake',
                                   snapshot.data?['calories'] ?? '',
                                 ),
+                              );
+                            }
+
+                            if (_selectedAnalysisTypes.contains(
+                              'Suggestions',
+                            )) {
+                              analysisWidgets.add(
                                 _buildInsightSection(
                                   'Suggestions',
                                   snapshot.data?['suggestions'] ?? '',
                                 ),
-                              ],
+                              );
+                            }
+
+                            if (_selectedAnalysisTypes.contains(
+                              'Meal Timing',
+                            )) {
+                              analysisWidgets.add(
+                                _buildInsightSection(
+                                  'Meal Timing',
+                                  "Try to space your meals 3-4 hours apart for optimal digestion and energy levels.",
+                                ),
+                              );
+                            }
+
+                            if (_selectedAnalysisTypes.contains('Hydration')) {
+                              analysisWidgets.add(
+                                _buildInsightSection(
+                                  'Hydration',
+                                  "Remember to drink 8-10 glasses of water throughout the day alongside your meals.",
+                                ),
+                              );
+                            }
+
+                            if (_selectedAnalysisTypes.contains(
+                              'Portion Size',
+                            )) {
+                              analysisWidgets.add(
+                                _buildInsightSection(
+                                  'Portion Size',
+                                  "Your meals appear well-portioned. Keep protein to palm-size and vegetables to fist-size portions.",
+                                ),
+                              );
+                            }
+
+                            return ListView(
+                              controller: controller,
+                              padding: const EdgeInsets.all(16),
+                              children: analysisWidgets,
                             );
                           },
                         ),
@@ -339,18 +680,27 @@ class MealLogScreen extends StatelessWidget {
   Widget _buildInsightSection(String title, String content, [String? metrics]) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+            Row(
+              children: [
+                _getIconForInsightType(title),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
+            const Divider(),
             const SizedBox(height: 8),
             if (title == 'Suggestions')
               _buildSuggestions(content)
@@ -364,6 +714,25 @@ class MealLogScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _getIconForInsightType(String type) {
+    switch (type) {
+      case 'Nutritional Balance':
+        return const Icon(Icons.balance, color: Colors.green);
+      case 'Caloric Intake':
+        return const Icon(Icons.local_fire_department, color: Colors.orange);
+      case 'Suggestions':
+        return const Icon(Icons.lightbulb_outline, color: Colors.amber);
+      case 'Meal Timing':
+        return const Icon(Icons.schedule, color: Colors.blue);
+      case 'Hydration':
+        return const Icon(Icons.water_drop, color: Colors.lightBlue);
+      case 'Portion Size':
+        return const Icon(Icons.straighten, color: Colors.purple);
+      default:
+        return const Icon(Icons.analytics, color: Colors.grey);
+    }
   }
 
   Widget _buildFormattedText(String text) {
@@ -438,14 +807,14 @@ class MealLogScreen extends StatelessWidget {
           standardValues['protein']!,
           Colors.red,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         _buildProgressBar(
           'Carbs',
           (metrics['carbs'] ?? 0).toDouble(),
           standardValues['carbs']!,
           Colors.blue,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         _buildProgressBar(
           'Fats',
           (metrics['fats'] ?? 0).toDouble(),
@@ -468,8 +837,11 @@ class MealLogScreen extends StatelessWidget {
         Row(
           children: [
             SizedBox(
-              width: 100,
-              child: Text(label, style: GoogleFonts.poppins()),
+              width: 80,
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+              ),
             ),
             Expanded(
               child: Stack(
@@ -489,41 +861,44 @@ class MealLogScreen extends StatelessWidget {
                     ),
                   ),
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(8),
                     child: LinearProgressIndicator(
                       value: value / 100,
                       backgroundColor: color.withOpacity(0.2),
                       valueColor: AlwaysStoppedAnimation<Color>(color),
-                      minHeight: 8,
+                      minHeight: 10,
                     ),
                   ),
                 ],
               ),
             ),
             SizedBox(
-              width: 50,
+              width: 60,
               child: Text(
                 '${value.round()}%',
-                style: GoogleFonts.poppins(),
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                 textAlign: TextAlign.end,
               ),
             ),
           ],
         ),
-        Text(
-          value < standard
-              ? 'Need ${(standard - value).round()}% more'
-              : value > standard
-              ? '${(value - standard).round()}% excess'
-              : 'Optimal level',
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color:
-                value == standard
-                    ? Colors.green
-                    : value < standard
-                    ? Colors.orange
-                    : Colors.red,
+        Padding(
+          padding: const EdgeInsets.only(left: 80),
+          child: Text(
+            value < standard
+                ? 'Need ${(standard - value).round()}% more'
+                : value > standard
+                ? '${(value - standard).round()}% excess'
+                : 'Optimal level',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color:
+                  value == standard
+                      ? Colors.green
+                      : value < standard
+                      ? Colors.orange
+                      : Colors.red,
+            ),
           ),
         ),
       ],
@@ -547,12 +922,12 @@ class MealLogScreen extends StatelessWidget {
           suggestionList
               .map(
                 (suggestion) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        margin: const EdgeInsets.only(top: 6, right: 8),
+                        margin: const EdgeInsets.only(top: 6, right: 12),
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(

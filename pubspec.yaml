@@ -58,6 +58,7 @@ dependencies:
   get_it:
 
   percent_indicator:
+  model_viewer_plus: ^1.9.3
 
 dev_dependencies:
   flutter_test:
@@ -84,6 +85,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
+    - assets/one.glb
+    - assets/two.glb
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
