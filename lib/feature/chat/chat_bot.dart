@@ -50,6 +50,9 @@ class _ChatBotState extends State<ChatBot> {
           setState(() {
             _isListening = false;
           });
+          if (_text.isNotEmpty) {
+            _handleSubmitted(_text);
+          }
         }
       },
       onError: (errorNotification) {
@@ -65,9 +68,7 @@ class _ChatBotState extends State<ChatBot> {
   void _initTts() async {
     await _flutterTts.setLanguage("en-US");
     await _flutterTts.setPitch(1.0);
-    await _flutterTts.setSpeechRate(
-      0.5,
-    ); // Slightly slower for better understanding
+    await _flutterTts.setSpeechRate(0.5);
 
     _flutterTts.setCompletionHandler(() {
       setState(() {
@@ -106,9 +107,6 @@ class _ChatBotState extends State<ChatBot> {
       setState(() {
         _isListening = false;
         _speech.stop();
-        if (_text.isNotEmpty) {
-          _handleSubmitted(_text);
-        }
       });
     }
   }
@@ -116,6 +114,13 @@ class _ChatBotState extends State<ChatBot> {
   // Speak text aloud
   Future<void> _speak(String text) async {
     await _flutterTts.speak(text);
+  }
+
+  // Clean text from markdown formatting
+  String _cleanText(String text) {
+    // Remove markdown ** formatting
+    String cleaned = text.replaceAll(RegExp(r'\*\*'), '');
+    return cleaned;
   }
 
   // Handle message submission
@@ -132,9 +137,10 @@ class _ChatBotState extends State<ChatBot> {
 
     try {
       final response = await _sendMessageToBot(text);
-      _addMessage(response, false);
+      final cleanedResponse = _cleanText(response);
+      _addMessage(cleanedResponse, false);
       // Speak the response
-      await _speak(response);
+      await _speak(cleanedResponse);
     } catch (e) {
       _addMessage(
         "Sorry, I couldn't connect to the server. Please try again.",
@@ -204,167 +210,136 @@ class _ChatBotState extends State<ChatBot> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.pink.shade400,
-        title: Text(
-          'Pregnancy Assistant',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline, color: Colors.white),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: Text(
-                        'About This Assistant',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                      ),
-                      content: Text(
-                        'This AI assistant provides personalized pregnancy advice based on week $_pregnancyWeek of your pregnancy. Use voice or text to ask questions!',
-                        style: GoogleFonts.poppins(),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Got it', style: GoogleFonts.poppins()),
-                        ),
-                      ],
-                    ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Chat messages area
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              decoration: BoxDecoration(color: Colors.grey.shade100),
-              child:
-                  _messages.isEmpty
-                      ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              size: 48,
-                              color: Colors.pink.shade200,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Ask me anything about your pregnancy!',
-                              style: GoogleFonts.poppins(
-                                color: Colors.grey.shade600,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Chat messages area
+            const SizedBox(height: 16),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                decoration: BoxDecoration(color: Colors.grey.shade100),
+                child:
+                    _messages.isEmpty
+                        ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 48,
+                                color: Colors.pink.shade200,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 16),
+                              Text(
+                                'Ask me anything about your pregnancy!',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        : ListView.builder(
+                          controller: _scrollController,
+                          itemCount: _messages.length,
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          itemBuilder: (context, index) => _messages[index],
                         ),
-                      )
-                      : ListView.builder(
-                        controller: _scrollController,
-                        itemCount: _messages.length,
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        itemBuilder: (context, index) => _messages[index],
-                      ),
+              ),
             ),
-          ),
 
-          // Loading indicator
-          if (_isLoading)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.pink.shade300,
+            // Loading indicator
+            if (_isLoading)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.pink.shade300,
+                        ),
                       ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Thinking...',
+                      style: GoogleFonts.poppins(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Input area
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 2,
+                    offset: const Offset(0, -1),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 8.0,
+              ),
+              child: Row(
+                children: [
+                  // Voice input button
+                  IconButton(
+                    icon: Icon(
+                      _isListening ? Icons.mic : Icons.mic_none,
+                      color: _isListening ? Colors.red : Colors.grey.shade700,
+                    ),
+                    onPressed: _listen,
+                  ),
+                  // Text input field
+                  Expanded(
+                    child: TextField(
+                      controller: _textController,
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        hintStyle: GoogleFonts.poppins(
+                          color: Colors.grey.shade400,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 10.0,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24.0),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                      ),
+                      textCapitalization: TextCapitalization.sentences,
+                      onSubmitted: _handleSubmitted,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Thinking...',
-                    style: GoogleFonts.poppins(color: Colors.grey),
+                  // Send button
+                  IconButton(
+                    icon: Icon(Icons.send, color: Colors.pink.shade400),
+                    onPressed: () {
+                      if (_textController.text.trim().isNotEmpty) {
+                        _handleSubmitted(_textController.text);
+                      }
+                    },
                   ),
                 ],
               ),
             ),
-
-          // Input area
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  spreadRadius: 1,
-                  blurRadius: 2,
-                  offset: const Offset(0, -1),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            child: Row(
-              children: [
-                // Voice input button
-                IconButton(
-                  icon: Icon(
-                    _isListening ? Icons.mic : Icons.mic_none,
-                    color: _isListening ? Colors.red : Colors.grey.shade700,
-                  ),
-                  onPressed: _listen,
-                ),
-                // Text input field
-                Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message...',
-                      hintStyle: GoogleFonts.poppins(
-                        color: Colors.grey.shade400,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 10.0,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24.0),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade100,
-                    ),
-                    textCapitalization: TextCapitalization.sentences,
-                    onSubmitted: _handleSubmitted,
-                  ),
-                ),
-                // Send button
-                IconButton(
-                  icon: Icon(Icons.send, color: Colors.pink.shade400),
-                  onPressed: () {
-                    if (_textController.text.trim().isNotEmpty) {
-                      _handleSubmitted(_textController.text);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
